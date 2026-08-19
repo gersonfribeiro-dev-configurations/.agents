@@ -101,17 +101,19 @@ Carregue a skill correspondente ao domínio da tarefa:
 
 | Skill             | Quando ativar                                                                      |
 | ----------------- | ---------------------------------------------------------------------------------- |
-| `backend`         | Trabalhando com Java, Spring Boot, APIs REST                                       |
-| `boilerplate-vue` | Trabalhando com projetos vue originais de boilerplate-vue                          |
-| `cicd`            | Configurando pipelines de integração/entrega contínua, Docker, Kubernetes e cloud  |
-| `context7`        | Buscando e validando documentações oficiais de bibliotecas e frameworks (Oráculo)  |
-| `entregas`        | Executando tarefas de entrega: testes, build, lint, setup de ferramentas           |
+| `backend`         | Trabalhando com Java, Spring Boot, APIs REST.                                      |
+| `boilerplate-vue` | Trabalhando com projetos vue originais de boilerplate-vue.                         |
+| `cicd`            | Configurando pipelines de integração/entrega contínua, Docker, Kubernetes e cloud. |
+| `context7`        | Buscando e validando documentações oficiais de bibliotecas e frameworks (Oráculo). |
+| `entregas`        | Executando tarefas de entrega: testes, build, lint, setup de ferramentas.          |
 | `generate-report` | Ao solicitar que gere um relatório das realizações para fechamento do serviço.     |
-| `kafka`           | Lidando com mensageria, eventos assíncronos e infraestrutura de tópicos            |
-| `pencil`          | Prototipando interfaces (pen.dev) e mantendo estruturação visual sem corromper UI  |
-| `playwright`      | Inspecionando o DOM, extraindo CSS real ou rodando testes E2E no frontend          |
-| `sc`              | Instruções para as aplicações integradas com a nossa Software Center               |
-| `sonarqube`       | Analisando qualidade de código, débitos técnicos, segurança e code smells          |
-| `toolkit`         | Interagindo com o ambiente Docker, CLI e rede do container (MCP_DOCKER)            |
+| `graphify`        | Util para análise AST, gerado por meio do comando graphify ou /graphify.           |
+| `kafka`           | Lidando com mensageria, eventos assíncronos e infraestrutura de tópicos.           |
+| `packages`        | Lidando com a construção ou manutenção de packages próprios com Maven ou npm.      |
+| `pencil`          | Prototipando interfaces (pen.dev) e mantendo estruturação visual sem corromper UI. |
+| `playwright`      | Inspecionando o DOM, extraindo CSS real ou rodando testes E2E no frontend.         |
+| `sc`              | Instruções para as aplicações integradas com a nossa Software Center.              |
+| `sonarqube`       | Analisando qualidade de código, débitos técnicos, segurança e code smells.         |
+| `toolkit`         | Interagindo com o ambiente Docker, CLI e rede do container (MCP_DOCKER).           |
 | `type-orm`        | ORM para aplicações com conexões ao database utilizando frameworks como o nest.    |
-| `vue`             | Trabalhando com Vue 3, Vuetify, Pinia, composables, componentes                    |
+| `vue`             | Trabalhando com Vue 3, Vuetify, Pinia, composables, componentes.                   |

@@ -65,7 +65,7 @@ Sempre que receber uma tarefa de layout, execute estes passos silenciosamente an
 - Framework padrão para geração: Vue.js.
 
 ## 3. Fluxo de Trabalho de UI
-
+- Certifique-se de que a aplicação desktop do Pen está aberta (obrigatório para a operação do MCP).
 - Acesse a interface e identifique os componentes base disponíveis.
 - Monte o protótipo estruturando as camadas hierarquicamente (Pai > Filhos) para evitar que o conteúdo fique oculto ou "jogado" no ponto de origem.
 - Compartilhe o link/estado do protótipo para validação antes de gerar o código final.

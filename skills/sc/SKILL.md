@@ -448,6 +448,16 @@ A aplicação exige que o `hash` seja exatamente o da prévia pendente. Ao aplic
 7. Proteja operações administrativas com capability e permissão no backend.
 8. Teste login válido, acesso sem permissão, cargo/atribuição inativos, tenant inativo, contrato/liberação inválidos, logout e rate limit.
 
+## Credenciais e domínios locais
+
+Mantenha clientes OIDC, BFF e de catálogo separados. OIDC usa `authorization_code` com PKCE para sessões de usuário; catálogo usa `client_credentials`, audience `sc-catalog` e scope `sc.catalog.sync`; BFF usa HTTP Basic somente quando a aplicação integra as APIs de sessão. Nunca reutilize um segredo entre esses fluxos.
+
+O segredo OIDC deve ser gerado e rotacionado pela SC, exibido uma única vez e armazenado apenas no backend consumidor. O cliente técnico de catálogo é criado ou rotacionado no projeto da SC e também é exibido uma única vez.
+
+Em desenvolvimento, prefira um domínio wildcard que reproduza a produção, como `*.localtest.me`, e registre a base em `BASE_DOMAINS`. Toda origem tenant deve passar por resolução de tenant ativo e por validação explícita de porta CORS; nunca libere CORS por wildcard quando cookies estiverem habilitados.
+
+Para aplicações exclusivas, o owner cadastra a aplicação e informa o tenant beneficiário. A sessão deve resolver o beneficiário configurado, sem depender de `tenantSubdominio` vindo do navegador.
+
 ## Referências no repositório da SC
 
 - `docs/BFF_INTEGRATION.md`

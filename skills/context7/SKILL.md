@@ -18,23 +18,31 @@ Ative esta skill sempre que o usuário:
 ## 2. Fluxo Obrigatório de Busca
 
 ### Passo 1: Descobrir o ID da Biblioteca (`resolve-library-id`)
+
 Sempre comece chamando a ação `resolve-library-id` com:
+
 - `libraryName`: O nome da tecnologia extraído da solicitação do usuário (ex: "vuetify").
 - `query`: A pergunta completa do usuário (isso melhora o algoritmo de ranqueamento de relevância).
 
 ### Passo 2: Selecionar o Melhor Match
+
 Escolha o melhor resultado retornado avaliando:
+
 - A correspondência exata ou mais próxima do nome solicitado.
 - **Fontes Oficiais:** Prefira pacotes oficiais/primários sobre forks da comunidade (notas de benchmark mais altas indicam melhor qualidade).
 - **Atenção à Versão:** Se o usuário mencionar uma versão (ex: "React 19", "Next.js 15"), prefira IDs específicos dessa versão, se disponíveis.
 
 ### Passo 3: Buscar a Documentação (`query-docs`)
+
 Utilize a ação `query-docs` informando o `libraryId` selecionado (ex: `/vercel/next.js`) e a sua dúvida.
+
 - Mantenha a busca focada em um **único conceito ou componente por vez** (ex: "v-data-table server side pagination").
 - Se a pergunta do usuário abranger múltiplos conceitos distintos (ex: rotas E autenticação E cache), faça chamadas separadas ao `query-docs` para o mesmo ID da biblioteca, a menos que a pergunta seja especificamente sobre como os conceitos interagem.
 
 ### Passo 4: Implementação Direta
+
 Incorpore a documentação obtida na sua resposta:
+
 - Responda à dúvida utilizando as informações precisas e atuais.
 - Utilize os snippets e exemplos práticos trazidos pela documentação para embasar sua solução de código.
 - Cite a versão da biblioteca na resposta quando for relevante.

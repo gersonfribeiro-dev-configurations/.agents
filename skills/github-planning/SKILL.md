@@ -48,11 +48,15 @@ Preencher ambos os fields em toda issue. Valores de `6` a `10` representam agreg
 ## Execucao e entrega
 
 - Executar somente uma issue por iteracao.
-- Criar branches, commits, pushes e Pull Requests quando necessario.
-- Toda entrega deve ocorrer por Pull Request.
-- A descricao do PR deve conter `Fixed #123` ou `Closed #123`, substituindo `123` pelo numero da issue entregue, para permitir o fechamento automatico.
+- Aplicar a skill `entregas` ao iniciar a entrega.
+- Uma branch resolve uma unica issue e um Pull Request entrega uma unica issue, independentemente do tamanho do escopo.
+- Criar a branch de issue a partir de `develop` ou da branch de `release` correspondente. Nunca partir de `master`, nem abrir Pull Request de issue diretamente para `master`.
+- Publicar a branch no remoto e abrir o Pull Request para a branch de origem. Branches de `release` devem ser entregues em `develop` por Pull Request; `develop` deve ser entregue em `master` por Pull Request.
+- Gerar o relatorio completo com a skill `generate-report` e usá-lo como descricao em Markdown do Pull Request. Incluir `Fixed #123` ou `Closed #123`, substituindo `123` pelo numero da issue entregue, para permitir o fechamento automatico.
+- O titulo do Pull Request deve resumir a realizacao, sem prefixos como `feat:` e sem titulos tecnicos de merge.
 - Review e aprovacao sao exclusivamente manuais. Nunca aprovar ou fazer merge em nome do usuario sem solicitacao explicita.
 - Ao reabrir uma issue, adicionar comentario com a justificativa. O workflow do Project move o status; a entrega posterior deve incluir o relatorio habitual.
+- Sem alteracao versionavel no repositorio, nao criar Pull Request artificial. Registrar a justificativa em comentario e encerrar manualmente a issue quando o usuario autorizar.
 
 ## Permissoes do PAT
 

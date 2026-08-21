@@ -50,13 +50,18 @@ Preencher ambos os fields em toda issue. Valores de `6` a `10` representam agreg
 - Executar somente uma issue por iteracao.
 - Aplicar a skill `entregas` ao iniciar a entrega.
 - Uma branch resolve uma unica issue e um Pull Request entrega uma unica issue, independentemente do tamanho do escopo.
+- Usar exclusivamente `master`, `develop`, `feature/<nome>`, `hotfix/<nome>` e `release/<versao>`. Nunca criar prefixes alternativos, como `fix/`.
+- Usar `feature/` para issues com type `Feature`, `Bug` ou `Task`; `hotfix/` e exclusivo para issues com type `Hotfix`; usar `release/` para preparacao de versao.
 - Criar a branch de issue a partir de `develop` ou da branch de `release` correspondente. Nunca partir de `master`, nem abrir Pull Request de issue diretamente para `master`.
 - Publicar a branch no remoto e abrir o Pull Request para a branch de origem. Branches de `release` devem ser entregues em `develop` por Pull Request; `develop` deve ser entregue em `master` por Pull Request.
+- Verificar se `origin` representa o repositório organizacional. Se apontar para fork ou repositório movido, enviar a branch também ao repositório que receberá o Pull Request e confirmar o SHA remoto antes da abertura.
 - Gerar o relatorio completo com a skill `generate-report` e usá-lo como descricao em Markdown do Pull Request. Incluir `Fixed #123` ou `Closed #123`, substituindo `123` pelo numero da issue entregue, para permitir o fechamento automatico.
 - O titulo do Pull Request deve resumir a realizacao, sem prefixos como `feat:` e sem titulos tecnicos de merge.
 - Review e aprovacao sao exclusivamente manuais. Nunca aprovar ou fazer merge em nome do usuario sem solicitacao explicita.
 - Ao reabrir uma issue, adicionar comentario com a justificativa. O workflow do Project move o status; a entrega posterior deve incluir o relatorio habitual.
 - Sem alteracao versionavel no repositorio, nao criar Pull Request artificial. Registrar a justificativa em comentario e encerrar manualmente a issue quando o usuario autorizar.
+- O `Status` do Project e independente do estado da issue: mover `Backlog` para `In progress` ao iniciar a branch, `In progress` para `In review` depois das validações e antes do Pull Request, e aguardar os workflows para `Ready` e o merge para `Done`.
+- Quando a integração não expuser escrita no `Status`, registrar a transição pretendida em comentário, informar a limitação e nunca declarar que o campo foi efetivamente alterado.
 
 ## Permissoes do PAT
 

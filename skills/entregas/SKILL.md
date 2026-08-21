@@ -33,14 +33,18 @@ Toda entrega deve ser acompanhada de build de código (frontend e/ou backend).
 ## 7.5 Git Flow e Pull Requests
 
 - Uma branch resolve uma unica issue e um Pull Request entrega uma unica issue, independentemente do tamanho do escopo.
+- A arvore Git permitida e composta por `master`, `develop`, `feature/<nome>`, `hotfix/<nome>` e `release/<versao>`. Nao criar prefixes ou tipos alternativos, como `fix/`.
+- Usar `feature/` para issues com type `Feature`, `Bug` ou `Task`; `hotfix/` e exclusivo para issues com type `Hotfix`; usar `release/` para preparar uma versao.
 - Criar a branch a partir da branch de origem adequada: `develop` para trabalho regular ou a branch de `release` correspondente quando a issue pertencer a uma release em andamento. Nunca abrir branch de issue a partir de `master`.
 - Publicar a branch no remoto antes de abrir o Pull Request.
+- Conferir `git remote -v` antes do push. Quando `origin` apontar para fork ou repositório movido, publicar explicitamente a branch no repositório organizacional que receberá o Pull Request e confirmar sua existência nele.
 - Abrir o Pull Request para a branch de origem. Nunca entregar uma issue diretamente em `master`.
 - Entregar branches de `release` em `develop` por Pull Request e entregar `develop` em `master` tambem por Pull Request.
 - Gerar o relatorio pela skill `generate-report` para toda entrega. A descricao do Pull Request deve conter o relatorio completo em Markdown e `Fixed #123` ou `Closed #123`, substituindo `123` pela issue entregue.
 - O titulo do Pull Request deve resumir a realizacao para leitura humana. Nao usar prefixos tecnicos como `feat:` ou titulos de merge como `merge: release v1.0.0 in develop`.
 - Code review e aprovacao sao manuais. Nao aprovar, fazer merge ou ignorar requisitos de revisao sem solicitacao explicita.
 - Excecoes sem alteracao versionavel, como atualizacoes de configuracao remota ou skills ja publicadas fora do repositorio, devem ser justificadas em comentario na issue antes do encerramento manual.
+- Registrar no Pull Request as validações aprovadas e bloqueios preexistentes que impeçam validações globais, sem incluir arquivos fora do escopo para contorná-los.
 
 ## 7.6 Garantias
 

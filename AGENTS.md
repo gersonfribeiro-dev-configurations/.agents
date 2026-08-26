@@ -113,6 +113,7 @@ Carregue a skill correspondente ao domínio da tarefa:
 | `pencil`          | Prototipando interfaces (pen.dev) e mantendo estruturação visual sem corromper UI. |
 | `playwright`      | Inspecionando o DOM, extraindo CSS real ou rodando testes E2E no frontend.         |
 | `github-planning` | Planejando e entregando trabalho com GitHub MCP, Issues, Projects, Milestones e PRs. |
+| `git-worktree`   | Criando, administrando, limpando ou diagnosticando múltiplos worktrees Git.        |
 | `sc`              | Instruções para as aplicações integradas com a nossa Software Center.              |
 | `sonarqube`       | Analisando qualidade de código, débitos técnicos, segurança e code smells.         |
 | `toolkit`         | Interagindo com o ambiente Docker, CLI e rede do container (MCP_DOCKER).           |

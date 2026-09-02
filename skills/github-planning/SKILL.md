@@ -3,76 +3,90 @@ name: github-planning
 description: Use when planning, creating, updating, reopening, delivering, or reviewing work tracked with GitHub Issues, Milestones, Projects, branches, commits, and pull requests in the aplicacoesBoilerplate organization.
 ---
 
-# Skill: Governanca GitHub MCP
+# Skill: Governanca GitHub MCP - Fluxo Oficial
 
-## Planejamento obrigatorio
+## 0. Principio imutavel
 
-Antes de propor ou iniciar uma feature no modo plano, consultar o GitHub pelo MCP e identificar:
+Sempre adotar o fluxo abaixo. Nunca desviar. Detectou um problema? Nao codar antes de materializar no Project vinculado ao repositorio.
 
-- O Project, incluindo `Status`, `Estimate` e `Size` quando disponiveis.
-- A milestone aberta aplicavel.
-- A issue pai da release e sua arvore de sub-issues.
-- Types, labels, fields, dependencias, issues abertas e milestones abertas relacionadas.
-- A arvore Git, tags existentes, servicos em andamento e trabalho futuro pendente.
+## 1. Triagem e tipagem da issue
 
-Se a feature nao tiver milestone e issue pai adequadas, criar primeiro a estrutura de release. A issue pai deve ser uma `Release` MAJOR, possuir label `release`, milestone e estimativa `10`.
+- **bug / fix / hotfix** quando for defeito ou correcao. Usar type `Bug` para defeito em `develop`/`release`, `Hotfix` exclusivamente para correcao emergencial em `master`/`release` ja publicada. `fix` sem melhor enquadramento usa `Task` mas preferir `Bug`.
+- **feature** quando for dependencia tecnica ou nova implementacao necessaria para entregar um recurso. Usar type `Feature`.
+- Toda issue, inclusive `Hotfix`, deve estar vinculada a uma **Milestone**. Milestones andam juntas com tags de releases e alimentam o `changelog`. Sem milestone, sem issue.
 
-Criar milestones somente depois de avaliar a arvore Git, tags, entregas pendentes e o planejamento das demais milestones abertas. Nao criar milestones por conveniencia isolada de uma issue.
+## 2. Milestone + Issue epica de Release (obrigatorio)
 
-## Modelo de issues
+Para cada release (ex: `v0.0.1` - nao usar sufixo `beta` no nome da release/milestone):
 
-- A issue pai e vinculada a uma milestone; as sub-issues devem permanecer na mesma milestone e na arvore correta.
-- Criar issues, comentarios e Pull Requests exclusivamente com a autoria da conta autenticada pelo PAT; nunca personificar outro usuario. Atribuir a conta autenticada quando aplicavel.
-- Preencher type, labels, fields, titulo e descricao enriquecida. A descricao pode conter trechos do plano; comentarios adicionais sao permitidos quando a divisao melhora a rastreabilidade.
-- Usar `Release` para mudancas semanticas de versao, `Feature` para funcionalidade, `Bug` para defeito, `Hotfix` para correcao emergencial e `Task` apenas para trabalho tecnico sem melhor type de dominio.
+1. Criar/atualizar a **Milestone** com o mesmo nome da tag (`v0.0.1`, `v0.0.2`...).
+2. Criar a **issue epica de release** com o **mesmo nome da Milestone** (`v0.0.1`). Essa issue e a unica com:
+   - `type: Release` com field `MAJOR` (issue Fields)
+   - `label: release`
+   - `estimate: 10` e `size: XL` (agregacao de valor maxima - escala 1~10)
+   - Milestone vinculada
+   - Se o Project expuser fields editaveis, alterar **diretamente no metadado do Project** (`Status`, `Estimate`, `Size`, `Priority`, `Effort`) via `updateProjectV2ItemFieldValue`; fallback e issue Fields.
+3. A issue epica nunca recebe codigo. Ela agrega.
 
-## Estimate e Size
+## 3. Sub-issues = Sprint da Milestone
 
-`Estimate` e `Size` representam a agregacao de esforco do escopo rastreado; nao sao metricas de tamanho do repositorio nem substituem `Priority` ou `Effort`.
+A Milestone e a sprint. As sub-issues da epica sao as entregas reais daquela release:
+
+- Criar cada sub-issue com `parent: <epica v0.0.1>` via `gh issue create --parent` ou `addSubIssue`.
+- Herdar a mesma Milestone da epica.
+- Preencher `type`, `labels`, `fields` (`Estimate` 1~9 conforme tabela, `Size` XS~XL), `assignee` (conta autenticada pelo PAT) e descricao enriquecida.
+- Relacionar bloqueios: `blocked-by` / `blocking` quando houver dependencia. Isso sustenta PRs enfileirados.
+
+### Tabela Estimate/Size (1~10)
 
 | Estimate | Size | Uso |
 | ---: | --- | --- |
-| 1 | XS | Feature de escopo muito pequeno |
-| 2 | S | Feature pequena |
-| 3 | M | Feature media |
-| 4 | L | Feature grande |
-| 5 | XL | Feature muito grande |
-| 6 | XL | Hotfix, exclusivamente |
-| 7 | XL | Feature associada a release PATCH |
-| 8 | XL | Feature associada a release MINOR |
-| 9 | XL | Feature associada a release MAJOR |
-| 10 | XL | Issue pai de release MAJOR e milestone |
+| 1 | XS | trivial |
+| 2 | S | pequeno |
+| 3 | M | medio |
+| 4 | L | grande |
+| 5 | XL | muito grande (limite para delivery isolada) |
+| 6 | XL | Hotfix exclusivo |
+| 7 | XL | Feature de PATCH |
+| 8 | XL | Feature de MINOR |
+| 9 | XL | Feature de MAJOR |
+| 10 | XL | apenas epica de Release MAJOR |
 
-Preencher ambos os fields em toda issue. Valores de `6` a `10` representam agregacoes de escopo; o `Size` permanece `XL` por ser a maior classificacao categorica disponivel.
+## 4. Branch + Worktree (obrigatorio)
 
-## Execucao e entrega
+- Toda entrega tem **branch propria** a partir da **branch de release** (`release/v0.0.1`). Se a release ainda nao tem branch `release/v0.0.1`, cria-la a partir de `develop` primeiro.
+- Nunca partir de `master` para issue de feature/bug/task. `hotfix/` parte de `master` ou `release/*` publicada.
+- Criar **novo worktree** para isolar a implementacao: `git worktree add -b <tipo>/<slug> <caminho> <origem>` (ver `git-worktree` skill). Um worktree por issue.
+- Publicar a branch no remoto (`origin` deve ser o repositorio organizacional `aplicacoesBoilerplate/<repo>`) antes do PR.
 
-- Executar somente uma issue por iteracao.
-- Aplicar a skill `entregas` ao iniciar a entrega.
-- Uma branch resolve uma unica issue e um Pull Request entrega uma unica issue, independentemente do tamanho do escopo.
-- Usar exclusivamente `master`, `develop`, `feature/<nome>`, `hotfix/<nome>` e `release/<versao>`. Nunca criar prefixes alternativos, como `fix/`.
-- Usar `feature/` para issues com type `Feature`, `Bug` ou `Task`; `hotfix/` e exclusivo para issues com type `Hotfix`; usar `release/` para preparacao de versao.
-- Quando a issue pertencer a uma release que ja tenha branch `release/<versao>`, criar a branch da issue obrigatoriamente a partir dessa branch e abrir o Pull Request de volta para ela. Usar `develop` somente para itens fora de uma release ativa. Nunca partir de `master`, nem abrir Pull Request de issue diretamente para `master`.
-- Publicar a branch no remoto e abrir o Pull Request para a sua branch de origem. Branches de `release` devem ser entregues em `develop` por Pull Request; `develop` deve ser entregue em `master` por Pull Request.
-- Verificar se `origin` representa o repositório organizacional. Se apontar para fork ou repositório movido, enviar a branch também ao repositório que receberá o Pull Request e confirmar o SHA remoto antes da abertura.
-- Gerar o relatorio completo com a skill `generate-report` e usá-lo como descricao em Markdown do Pull Request. Usar `Closed #123` somente quando a PR aponta para a branch padrão: o GitHub ignora palavras-chave de fechamento em PRs para `release/*` ou `develop`.
-- O titulo do Pull Request deve resumir a realizacao, sem prefixos como `feat:` e sem titulos tecnicos de merge.
-- Antes de solicitar revisao, o Pull Request deve ter a conta autenticada pelo PAT como assignee, labels e milestone, além do Project. Os valores devem corresponder aos da issue entregue quando aplicavel. `Estimate`, `Size`, `Priority` e `Effort` pertencem à issue; não replicá-los na PR se o Project não aceitar esses campos para pull requests. Usar REST para assignee, labels e milestone e conferir esses metadados pela API depois da criação; não considerar o Pull Request pronto enquanto algum campo obrigatório estiver ausente.
-- Todo Pull Request deve solicitar revisao do usuario proprietario do workspace. A aprovacao desse usuario, registrada como `APPROVED`, e obrigatoria antes de merge; o agente nunca pode se autoaprovar, remover esse requisito ou fazer merge sem solicitacao explicita do usuario.
-- Confirmar em Development uma unica issue vinculada. Para PRs na branch padrão, `Fixed #123` ou `Closed #123` cria o vínculo. Para PRs em `release/*` ou `develop`, vincular manualmente a única issue por **Development > Link issue**, ou pela mutation GraphQL `addLinkedPullRequestToIssue` quando essa capacidade estiver exposta. A API REST não oferece essa operação.
-- Para incluir um Pull Request no Project e preencher seus fields, usar `addProjectV2ItemById` e `updateProjectV2ItemFieldValue`. Se essas mutations nao estiverem disponiveis na integracao, informar o bloqueio e solicitar a capacidade antes da revisao.
-- Para PRs em branch não padrão, não usar `Closed #N` como mecanismo de vínculo: registrar a issue no relatório sem palavra-chave de fechamento e criar o vínculo em Development manualmente ou por GraphQL.
-- Ao criar a branch, adicionar a issue ao Project e definir o Status como `In progress`. Depois de vincular a PR em Development, validar se a abertura acionou o workflow para `In review`; uma aprovacao `APPROVED` deve mover para `Ready`; o merge deve mover para `Done`. Antes de iniciar outra issue, validar esses tres gatilhos no Project e corrigir os workflows se necessario. Nao substituir os workflows por mudancas manuais de Status, exceto quando a integracao nao tiver permissao de escrita e a limitacao for registrada.
-- Apos cada merge, verificar se os workflows do Project efetivaram a transicao do item para `Done` e o encerramento da issue. Se a transicao nao ocorrer, diagnosticar a causa (item ausente do Project, vinculo por palavra errada como `Refs`, workflow desabilitado) antes de qualquer ajuste manual, e registrar a correcao aplicavel na skill ou nos workflows para evitar recorrencia.
-- O item deve ficar em `In review` enquanto o PR estiver aberto e sem aprovacao. Aprovacao real de review, com estado `APPROVED` e nao apenas `COMMENTED`, aciona o workflow para `Ready`; `Done` somente depois de merge ou fechamento.
-- Em repositorio com unico contribuidor, o autor nao deve autoaprovar. Concluidas as validacoes, registrar a evidencia no PR e manter o item em `In review` ate a aprovacao do usuario; o workflow de `APPROVED` deve movê-lo para `Ready`, e o merge ou fechamento mantem a transicao para `Done` pelos workflows do Project.
-- Review e aprovacao sao exclusivamente manuais e pertencem ao usuario solicitante. Nunca aprovar, dispensar a revisao ou fazer merge em nome do usuario sem solicitacao explicita.
-- Ao reabrir uma issue, adicionar comentario com a justificativa. O workflow do Project move o status; a entrega posterior deve incluir o relatorio habitual.
-- Sem alteracao versionavel no repositorio, nao criar Pull Request artificial. Registrar a justificativa em comentario e encerrar manualmente a issue quando o usuario autorizar.
-- O `Status` do Project e independente do estado da issue: a transicao para `In progress` e feita ao iniciar a branch; as transicoes seguintes pertencem aos workflows de abertura do Pull Request, aprovacao e merge.
-- Quando a integração não expuser escrita no `Status`, registrar a transição pretendida em comentário, informar a limitação e nunca declarar que o campo foi efetivamente alterado.
-- Depois que um Pull Request for aberto, enviar commits adicionais para a mesma branch quando forem correcoes do mesmo escopo; o Pull Request sera atualizado automaticamente. Nunca fecha-lo e recria-lo apenas para incluir novas alteracoes. Fechar e substituir somente se a base, o historico ou o escopo estiverem incorretos e nao puderem ser corrigidos sem reescrita proibida da branch.
+## 5. Pull Request
 
-## Permissoes do PAT
+- Uma branch resolve **uma unica issue**, um PR entrega **uma unica issue**.
+- Titulo humano sem prefixo `feat:`; descricao e o relatorio `generate-report` em Markdown.
+- Preencher no PR os **mesmos metadados da issue**: `assignee` (conta autenticada), `labels`, `milestone`, `Project`, `type` quando o Project suportar. Confirmar via REST depois da criacao.
+- Em PR para `master` usar `Closed #N`/`Fixed #N` para fechar automaticamente. Em PR para `release/*` ou `develop` nao usar palavra-chave de fechamento; vincular manualmente em `Development > Link issue` (ou `addLinkedPullRequestToIssue` via GraphQL) e fechar a issue manualmente apos merge.
+- **Solicitar review do owner do repositorio** (`gersonfribeiro`) obrigatoriamente. Merge so com `APPROVED` explicito do owner. Nunca autoaprovar.
+- PRs enfileirados: quando issue A e bloqueada por issue B, abrir 2+ PRs com base encadeada (`feature/A` -> `feature/B` -> `release/v0.0.1`) e declarar `blocked-by`.
 
-Para Projects V2 de organizacao com fine-grained PAT, usar `Organization permissions > Projects: Read-only` para consultas e `Read and write` para adicionar itens ou alterar fields e Status. Para criar e atualizar issues e os metadados nativos de Pull Requests, conceder `Repository permissions > Issues: Read and write` e `Repository permissions > Pull requests: Read and write` aos repositorios selecionados. A segunda permissao e necessaria para solicitar reviewers. O acesso ao Project tambem precisa estar liberado para o usuario ou equipe.
+## 6. Status no Project (workflows)
+
+Nunca mudar `Status` manualmente se o workflow do Project cobrir:
+
+- Ao **criar a branch** e adicionar a issue ao Project -> `In Progress`.
+- Ao **abrir o PR** vinculado -> `In Review`.
+- Ao **receber `APPROVED`** do owner -> `Ready`.
+- Apos **merge/close** -> `Done` (workflow move e encerra a issue).
+
+Validar os 3 gatilhos antes de iniciar outra issue. Se workflow nao disparar, diagnosticar: item fora do Project, vinculo `Refs` em vez de `Development`, workflow desabilitado. So entao registrar em comentario e corrigir.
+
+## 7. Entregas sem alteracao versionavel
+
+Se nao houver diff commitavel, nao abrir PR artificial. Justificar em comentario na issue e encerrar manualmente quando o usuario autorizar.
+
+## 8. Planejamento obrigatorio antes de codar
+
+Consultar via MCP/GitHub CLI: `Project` (Status, Estimate, Size, fields), Milestones abertas, epica da release e arvore de sub-issues, Types/labels/fields, arvore Git e tags. Se nao houver milestone/epica compativel, criar primeiro conforme secao 2.
+
+## 9. Permissoes do PAT
+
+Ver skill `github-permissions` para matriz completa de `Organization permissions > Projects` e `Repository permissions > Issues/Pull requests` e comandos que exigem `gh auth refresh` pelo usuario real.

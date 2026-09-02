@@ -24,10 +24,13 @@ git checkout release/v0.0.1
 git pull --ff-only
 
 # 2. Criar worktree + branch da issue a partir da release
-git worktree add -b feature/<slug-da-issue> F:/Projetos/GitHub/Boilerplates/<repo>-<slug> release/v0.0.1
+# <caminho-do-worktree> deve ser relativo ao repo ou usar variavel de ambiente, nunca caminho absoluto com usuario fixo
+# Exemplo relativo (recomendado, funciona em qualquer maquina): ../<repo>-<slug>
+# Ou com base configuravel: $WORKSPACE/<repo>-<slug>
+git worktree add -b feature/<slug-da-issue> ../<repo>-<slug> release/v0.0.1
 
 # 3. Trabalhar dentro do worktree
-cd F:/Projetos/GitHub/Boilerplates/<repo>-<slug>
+cd ../<repo>-<slug>
 git status
 
 # 4. Publicar branch para PR voltar para release
@@ -84,4 +87,4 @@ git worktree list
 
 ## Regra de ouro
 
-Sem worktree separado, sem entrega. O diretorio principal (`F:/Projetos/GitHub/Boilerplates/packages/PackagesJava`) permanece em `develop`/`master`; cada `feature/*` vive em seu worktree ate merge e `Done`.
+Sem worktree separado, sem entrega. O diretorio principal permanece em `develop`/`master`; cada `feature/*` vive em seu worktree irmao (ex: `../<repo>-<slug>`) ate merge e `Done`. Nunca usar caminho absoluto com `C:/Users/<usuario>` fixo - use caminho relativo ou variavel (`$HOME`, `%USERPROFILE%`, `$WORKSPACE`).

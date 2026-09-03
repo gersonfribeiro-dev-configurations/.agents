@@ -7,6 +7,10 @@ description: Use when creating, listing, navigating, moving, locking, removing, 
 
 Use worktree SEMPRE que for entregar uma issue vinculada a uma Milestone/Release. O worktree e parte do fluxo oficial, nao opcional.
 
+## Limite de responsabilidade
+
+Worktree isola apenas o codigo e o historico Git. A issue, o PR e os metadados do Project continuam sendo recursos remotos: use MCP para operacoes de alto nivel e `gh api graphql` para fields/views do Project V2. Use SSH somente no remote Git para `fetch`, `pull` e `push`.
+
 ## Principios
 
 - Um worktree = uma delivery = uma issue/sub-issue da epica `v0.0.1`.
@@ -37,7 +41,7 @@ git status
 git push -u origin feature/<slug-da-issue>
 ```
 
-Ao criar a branch, adicionar a issue ao Project e mover `Status` para `In Progress` (workflow ou manual se permissao faltar e registrado em comentario).
+Ao criar a branch, adicionar a issue ao Project e mover `Status` para `In Progress` (workflow ou manual se permissao faltar e registrado em comentario). Adicionar item e atualizar fields devem ser feitos via GraphQL quando o MCP nao expuser a operacao.
 
 ## Consultar worktrees
 

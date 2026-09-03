@@ -1,6 +1,6 @@
 ---
 name: github-planning
-description: Use when planning, creating, updating, reopening, delivering, or reviewing work tracked with GitHub Issues, Milestones, Projects, branches, commits, and pull requests in the aplicacoesBoilerplate organization.
+description: Use when planning, creating, updating, reopening, delivering, or reviewing work tracked with GitHub Issues, Milestones, Projects, branches, commits, and pull requests across the configured GitHub organizations.
 ---
 
 # Skill: Governanca GitHub MCP - Fluxo Oficial
@@ -8,6 +8,23 @@ description: Use when planning, creating, updating, reopening, delivering, or re
 ## 0. Principio imutavel
 
 Sempre adotar o fluxo abaixo. Nunca desviar. Detectou um problema? Nao codar antes de materializar no Project vinculado ao repositorio.
+
+## 0.1 Orquestracao de ferramentas - MCP vs GraphQL vs SSH (regra de ouro)
+
+Dividir responsabilidades para ser assertivo. O agente NUNCA tenta popular Project V2 Custom Fields via MCP REST.
+
+| Recurso | Quando usar | Exemplos |
+| --- | --- | --- |
+| **GitHub MCP** | Acoes de alto nivel, leitura de contexto, operacoes nativas da Issue/PR | `issues_create`, `issues_add_comment`, `pull_request_create`, `repository_get_file_content`, `git_status`, `git_log` |
+| **GraphQL API via `gh api graphql`** | Popular/atualizar **exclusivamente** metadados de Project V2 (`Status`, `Estimate`, `Size`, `Priority`, `Effort`, `Hotfix`, `Start/Target date`) | `updateProjectV2ItemFieldValue`, `addProjectV2ItemById`, `createProjectV2Field` |
+| **SSH (`git@github-*.com:`)** | Operacoes de filesystem/git puro | `git clone`, `git push`, `git pull`, `git fetch` |
+
+**Fluxo do agente para metadados:**
+1. MCP cria a Issue/PR inicial e define `labels`, `assignees`, `milestone` (metadados nativos).
+2. GraphQL localiza `projectId` + `fieldId` + `itemId` e injeta `fieldValue` via mutation. MCP nao tem cobertura total para `ProjectV2Field` - nao insistir.
+3. SSH apenas transporta commits. Nunca usar SSH para metadados.
+
+> Se o agente receber `field not found` ou `ProjectV2 not supported` no MCP, migrar imediatamente para `gh api graphql` com PAT do agente.
 
 ## 1. Triagem e tipagem da issue
 
@@ -25,7 +42,7 @@ Para cada release (ex: `v0.0.1` - nao usar sufixo `beta` no nome da release/mile
    - `label: release`
    - `estimate: 10` e `size: XL` (agregacao de valor maxima - escala 1~10)
    - Milestone vinculada
-   - Se o Project expuser fields editaveis, alterar **diretamente no metadado do Project** (`Status`, `Estimate`, `Size`, `Priority`, `Effort`) via `updateProjectV2ItemFieldValue`; fallback e issue Fields.
+   - Popular **obrigatoriamente via GraphQL** os fields do Project (`Status`, `Estimate`, `Size`, `Priority`, `Effort`) apos adicionar a issue ao Project com `addProjectV2ItemById` + `updateProjectV2ItemFieldValue`. Fallback para issue Fields apenas se Project nao existir.
 3. A issue epica nunca recebe codigo. Ela agrega.
 
 ## 3. Sub-issues = Sprint da Milestone
@@ -85,8 +102,44 @@ Se nao houver diff commitavel, nao abrir PR artificial. Justificar em comentario
 
 ## 8. Planejamento obrigatorio antes de codar
 
-Consultar via MCP/GitHub CLI: `Project` (Status, Estimate, Size, fields), Milestones abertas, epica da release e arvore de sub-issues, Types/labels/fields, arvore Git e tags. Se nao houver milestone/epica compativel, criar primeiro conforme secao 2.
+Consultar via MCP/GitHub CLI: `Project` (Status, Estimate, Size, fields), Milestones abertas, epica da release e arvore de sub-issues, Types/labels/fields, arvore Git e tags. Se nao houver milestone/epica compativel, criar primeiro conforme secao 2. Para fields do Project, consultar via GraphQL: `gh api graphql -f query='{node(id:"<projectId>"){...on ProjectV2{fields(first:20){nodes{...on ProjectV2SingleSelectField{id name options{name}}}}}}}'`
 
-## 9. Permissoes do PAT
+## 9. Views do Project V2 - como usar (baseado em image_886b91.png)
+
+Nunca tentar colocar tudo em uma view. Criar abas e congelar com **Save view**:
+
+| View | Layout | Configuracao | Quando usar |
+| --- | --- | --- | --- |
+| **Engenharia (Board)** | Board | `Column by: Status` (Backlog/In Progress/Done) + `Swimlanes: Milestone` ou `Swimlanes: Hotfix` | Dia-a-dia do time. Hotfix vira raia expressa no topo |
+| **Triage/Agente (Table)** | Table | `Group by: Status` + `Field sum: Estimate/Size` + filtros `No Status` | Auditoria do agente via API, garantir que todos `Estimate` foram preenchidos |
+| **Executiva (Roadmap)** | Roadmap | Requer `Start date` + `Target date` preenchidos via GraphQL | Apenas epicas/parent issues, visao de timeline |
+
+Comando para popular datas via GraphQL: `updateProjectV2ItemFieldValue` com `fieldId` do `Date` field e `value: {date: "2026-09-01"}`.
+
+## 10. Replicacao entre organizacoes (Infra como Codigo)
+
+GitHub nao tem "Template Global" para Projects/Fields. O agente e a ferramenta de replicacao:
+
+1. Criar o Project ideal na org source-of-truth (`aplicacoesBoilerplate`) com todas views e fields.
+2. Agente le a estrutura via GraphQL, consultando apenas os tipos/mutations que o schema atual expuser (`fields`, `views`, `workflows`).
+3. Loop nas orgs de destino com PAT multi-org executando as mutations suportadas (`createProjectV2`, `createProjectV2Field` e configuracao de views/workflows quando disponivel). Nao assumir que IDs de fields, options, views ou workflows sao reutilizaveis entre orgs: mapear por nome/layout e guardar os novos IDs.
+4. Commitar o script de replicacao (Go/Python/`gh api graphql`) no repo `infra` para reuso. Tornar a operacao idempotente por `org + project title` e registrar um relatorio dos IDs criados/atualizados.
+
+## 11. Populacao fina de Fields - template GraphQL obrigatorio
+
+```bash
+# 1. Resolver IDs
+gh api graphql -f query='query{organization(login:"aplicacoesBoilerplate"){projectV2(number: 1){id fields(first:20){nodes{...on ProjectV2SingleSelectField{id name}}}}}}'
+gh api graphql -f query='query{node(id:"<issueNodeId>"){...on Issue{id}}}'
+
+# 2. Adicionar issue ao Project e pegar itemId
+gh api graphql -f query='mutation{addProjectV2ItemById(input:{projectId:"<projectId>" contentId:"<issueNodeId>"}){item{id}}}'
+
+# 3. Popular field (ex: Estimate=3, Priority=High)
+gh api graphql -f query='mutation{updateProjectV2ItemFieldValue(input:{projectId:"<projectId>" itemId:"<itemId>" fieldId:"<fieldId>" value:{singleSelectOptionId:"<optionId>"}}){projectV2Item{id}}}'
+# Para Number/Text/Date: value:{number:3} | value:{text:"x"} | value:{date:"2026-09-01"}
+```
+
+## 12. Permissoes do PAT
 
 Ver skill `github-permissions` para matriz completa de `Organization permissions > Projects` e `Repository permissions > Issues/Pull requests` e comandos que exigem `gh auth refresh` pelo usuario real.

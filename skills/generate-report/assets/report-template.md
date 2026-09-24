@@ -10,7 +10,7 @@ Use este template como referência para o formato esperado dos relatórios.
 
 **Tarefa:** [Título ou ID da tarefa]
 
-### Realização (Interno)
+### Realização
 
 [Descrição breve do que foi feito em 3-5 linhas. Foco no resultado.]
 
@@ -18,14 +18,14 @@ Exemplo:
 
 > Implementada funcionalidade de filtro por status no painel de tarefas. Agora usuários podem visualizar apenas tarefas ativas, concluídas ou pausadas através de abas interativas. Integrado com o store existente sem quebrar compatibilidade.
 
-### Fontes Modificados
+### Fontes modificados
 
 - `src/components/TaskPanel.vue`
 - `src/stores/taskStore.ts`
 - `src/api/tasks.ts`
 - `tests/TaskPanel.spec.ts`
 
-### p/ Teste
+### p/ teste
 
 1. [Passo 1 - como chegar ao recurso]
 2. [Passo 2 - o que fazer]
@@ -52,7 +52,7 @@ Exemplo:
 
 ## Dicas de Redação
 
-### Para a seção de Realização (Interno)
+### Para a seção de Realização
 
 - ✅ Use linguagem técnica se necessário (é para desenvolvedores/PO)
 - ✅ Descreva o **o quê** e **por quê**
@@ -61,12 +61,12 @@ Exemplo:
 
 ### Para a seção de p/ Teste
 
-- ✅ Instrua como um guia de usabilidade
+- ✅ Instrua como guia de teste contextual: UI por passos visuais; workflows/templates por issue/PR de ensaio e resultado esperado
 - ✅ Use palavras simples: "clique", "abra", "marque", "veja"
 - ✅ Seja específico: "menu esquerdo > Tarefas" (não "navegue")
 - ✅ Indique resultado esperado: "você verá...", "vai desaparecer...", "deve aparecer..."
-- ❌ Nunca diga: "faça deploy", "rode os testes", "abra o DevTools"
-- ❌ Não use: "endpoint", "branch", "refactor", "query", "middleware"
+- ✅ Para automações, informe como verificar checks, permissões e ausência de publicação prematura sem expor segredos
+- ❌ Não exigir navegação gráfica quando a entrega não possui interface
 
 ### Para a seção de O que há de novo
 

@@ -29,24 +29,23 @@ Quando você pedir **"Gere o relatório para o serviço por favor"**, sigo estes
 
 ### 2. Seções do Relatório
 
-#### **Realização (Interno)**
+#### **Realização**
 
 - Descrição breve (3-5 linhas) do que foi implementado
 - Foco no resultado, não em detalhes técnicos
 - Linguagem clara e direta
 
-#### **Fontes Modificados**
+#### **Fontes modificados**
 
 - Lista de caminhos dos arquivos editados
 - Um arquivo por linha
 - Paths relativos ao projeto
 
-#### **p/ Teste**
+#### **p/ teste**
 
-- Instruções step-by-step para a equipe acessar a mudança
+- Instruções passo a passo para a equipe acessar ou validar a mudança
 - Linguagem **simples**, sem jargão técnico (sem "refactor", "merge", "deploy", etc.)
-- Como chegar ao recurso modificado (ex: "abra o menu > clique em X")
-- Como testar se funciona (ex: "clique no botão Y e veja se Z acontece")
+- Para UI: como chegar ao recurso e o que observar. Para workflows/templates: qual PR/issue de ensaio criar, quais gates/saídas conferir e o que **não** deve ser publicado; oferecer roteiro de teste compreensível sem depender de interface gráfica.
 - Suposições mínimas sobre conhecimento técnico
 
 #### **O que há de novo**
@@ -74,16 +73,16 @@ Gere o relatório para o serviço por favor
 ```markdown
 ## Relatório de Tarefa Concluída
 
-### Realização (Interno)
+### Realização
 Implementada funcionalidade de filtro por status no painel de tarefas. Agora usuários podem visualizar apenas tarefas ativas, concluídas ou pausadas através de abas interativas.
 
-### Fontes Modificados
+### Fontes modificados
 
 - `src/components/TaskPanel.vue`
 - `src/stores/taskStore.ts`
 - `src/api/tasks.ts`
 
-### p/ Teste
+### p/ teste
 
 1. Acesse a página de Tarefas (menu esquerdo > Tarefas)
 2. No topo da lista, você verá três abas: "Ativas", "Concluídas" e "Pausadas"
@@ -98,7 +97,7 @@ Novo sistema de filtros para tarefas. Organize sua lista por status com um simpl
 ## Princípios
 
 - **Clareza acima de tudo**: A equipe de testes deve entender sem perguntar
-- **Sem jargão**: Nada de "deploy", "branch", "refactor", "endpoint", etc.
+- **Linguagem adequada ao público**: explicar termos técnicos necessários aos cenários de workflow, sem ocultar o que se deve conferir.
 - **Concisão**: Informação útil, sem fluff
 - **Consistência**: Sempre a mesma estrutura, mesma ordem
 

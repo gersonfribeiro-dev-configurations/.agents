@@ -5,10 +5,10 @@ description: Use when you need to interact with the Dockerized environment, exec
 
 # Skill: Operações de Infraestrutura Local (Toolkit / MCP_DOCKER)
 
-Você opera dentro de um ambiente isolado via Docker. Esta skill define como você interage com o sistema operacional, rede e serviços locais.
+Primeiro identifique se esta sessão roda no host, em container ou por sandbox MCP. Esta skill orienta rede e serviços locais conforme o ambiente realmente detectado.
 
 ## 1. Regras de Rede (Networking)
-- **Acesso ao Host:** Como você está em um container, `localhost` ou `127.0.0.1` apontam para o próprio container. Para acessar serviços rodando na máquina host (como o frontend em `localhost:5173` ou uma API local), utilize **SEMPRE** o endereço `host.docker.internal`.
+- **Acesso ao Host:** Dentro de container, `localhost` aponta para o próprio container; `host.docker.internal` pode permitir acesso ao host quando resolvido/configurado. Em sessão no host, `localhost` aponta para o próprio host. Testar conectividade antes de escolher endereço.
 - **Exemplo de Acesso:** Se o frontend roda na porta 5173 do host, acesse via `http://host.docker.internal:5173`.
 
 ## 2. Execução de Comandos

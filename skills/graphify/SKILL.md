@@ -1,9 +1,11 @@
 ---
 name: graphify
-description: "Use for any question about a codebase, its architecture, file relationships, or project content — especially when graphify-out/ exists, where the question should be treated as a graphify query first. Turns any input (code, docs, papers, images, videos) into a persistent knowledge graph with god nodes, community detection, and query/path/explain tools."
+description: "Use when the user requests graphify or when an existing knowledge graph is needed for complex relationship/architecture analysis; do not activate for simple code/document reads or reviews."
 ---
 
 # /graphify
+
+**Ativação:** Use o procedimento abaixo apenas quando o usuário solicitar explicitamente `/graphify` ou quando a tarefa exigir análise de grafo e houver um grafo existente pertinente. Revisão simples de documentação/código não exige instalar graphify, gerar grafo ou despachar subagentes. Se a execução invocar subagentes, respeitar primeiro as instruções de delegação do ambiente.
 
 Turn any folder of files into a navigable knowledge graph with community detection, an honest audit trail, and three outputs: interactive HTML, GraphRAG-ready JSON, and a plain-language GRAPH_REPORT.md.
 

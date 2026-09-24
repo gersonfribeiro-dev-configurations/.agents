@@ -1,62 +1,32 @@
-# Exemplos de comandos para criar issues usando o GitHub CLI
+# GitHub CLI e GraphQL — Issue Fields e Project V2
 
-## Crie a issue e salve a URL resultante em uma variável
+## Descoberta obrigatória
 
-ISSUE_URL=$(gh issue create --repo aplicacoesBoilerplate/boilerplate-cli --title "Definir contrato de manifesto DX dos packages" --label enhancement --assignee agentegersonfribeiro-AI --project "CLI Boilerplate Go - DX" --milestone v0.0.1)
+- Identificar `owner`, repositório, issue, Project e identidade autorizada antes de executar comandos; nunca fixar organização, número de Project nem IDs de campos/opções.
+- Verificar as operações suportadas pelo `gh` instalado (`gh project item-edit --help`, `gh project field-list --help`) e, se necessário, consultar o schema GraphQL atual antes de montar mutations. Para editar as opções do próprio campo use `updateProjectV2Field`; para o valor de um item use `updateProjectV2ItemFieldValue`.
+- `gh project field-list <project-number> --owner <org> --format json` fornece IDs dos campos e opções. Confirmar nome, tipo e ID em **cada** Project antes de editar.
 
-### Atualizando os Project Fields
+## Issue Fields (metadados da issue, pertencentes à organização)
 
-gh project item-edit 10 --owner aplicacoesBoilerplate --url $ISSUE_URL --field "Priority" --value "High"
+Não confundir os Issue Fields com campos de Project. Descobrir os campos disponibilizados pela organização/repositório (`github_list_issue_fields` ou GraphQL) e usar a ferramenta de issues quando ela cobrir o tipo. Para casos sem cobertura, introspectar os tipos de input de `setIssueFieldValue` na API real e fornecer `issueId`, `fieldId` e valor/opção dessa organização; não usar ID de opção de Project. Um campo `MAJOR` de issue type Release não substitui `Estimate` ou `Status` do Project.
 
-1. 10 É o código do projeto, não da issue;
-2. Os fields mudam a tag --value com variações como number, text...
-
-## Usando gh api graphql para issue fields
-
-### Descobrindo os ID's no banco do GitHub
-
-Diferente das APIs tradicionais, o GraphQL não usa o número #6 ou a string "Medium". Você precisa consultar os IDs únicos (hash) da issue, do campo na organização e da opção desejada. Execute a query abaixo:
+## Project V2 Fields (valores de itens do Project)
 
 ```bash
-gh api graphql -F owner="aplicacoesBoilerplate" -F repo="boilerplate-cli" -F issueNumber=6 -f query='
-  query($owner: String!, $repo: String!, $issueNumber: Int!) {
-    repository(owner: $owner, name: $repo) {
-      issue(number: $issueNumber) { id }
-    }
-    organization(login: $owner) {
-      issueFields(first: 10) {
-        nodes {
-          ... on IssueFieldSingleSelect {
-            id
-            name
-            options { id name }
-          }
-        }
-      }
-    }
-  }'
+gh project field-list <numero-do-project> --owner <org> --format json
+gh project item-list <numero-do-project> --owner <org> --format json
+gh project item-edit --help
 ```
 
-### Mutação da issue via API
+`gh project item-edit` exige **ID do item** e **ID do Project**, além do ID do campo e de uma opção ou valor de tipo compatível; não confundir a URL da issue com o ID do item. Quando a operação desejada não for coberta pela CLI/MCP, consultar IDs reais e usar GraphQL:
 
-O objeto value recebe atributos específicos dependendo do tipo do campo (neste caso, singleSelectOptionId para um menu de seleção):
-
-```bash
-gh api graphql -F issueId="SEU_ISSUE_ID" -F fieldId="SEU_FIELD_ID" -F optionId="SEU_OPTION_ID" -f query='
-  mutation($issueId: ID!, $fieldId: ID!, $optionId: String) {
-    setIssueFieldValue(input: {
-      issueId: $issueId,
-      fieldId: $fieldId,
-      value: { singleSelectOptionId: $optionId }
-    }) {
-      clientMutationId
-    }
-  }'
+```graphql
+mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
+  updateProjectV2ItemFieldValue(input: {
+    projectId: $projectId, itemId: $itemId, fieldId: $fieldId,
+    value: {singleSelectOptionId: $optionId}
+  }) { projectV2Item { id } }
+}
 ```
 
-#### Tipos de Injeção no Objeto value:
-
-* **Single Select** (Priority/Effort): { singleSelectOptionId: $optionId }.
-* **Text**: { text: "Seu texto" }.
-* **Number** (Estimate): { number: 5 }.
-* **Date** (Start/Target date): { date: "2026-09-04" }.
+Para campos numéricos ou de data, confirmar o tipo real antes de enviar `value: {number: ...}` ou `value: {date: "YYYY-MM-DD"}`. Para opções de `Status`, `Size`, `Priority` ou `Effort`, preservar IDs e valores existentes ao alterar sua ordem ou descrição; nunca reaproveitar os IDs do [Template](https://github.com/orgs/aplicacoesBoilerplate/projects/11) em outro Project. Verificar a resposta e consultar novamente o campo/item alterado.

@@ -3,143 +3,57 @@ name: github-planning
 description: Use when planning, creating, updating, reopening, delivering, or reviewing work tracked with GitHub Issues, Milestones, Projects, branches, commits, and pull requests across the configured GitHub organizations.
 ---
 
-# Skill: Governanca GitHub MCP - Fluxo Oficial
+# Planejamento e entrega com GitHub
 
-## 0. Principio imutavel
+## Fonte de verdade e ferramentas
 
-Sempre adotar o fluxo abaixo. Nunca desviar. Detectou um problema? Nao codar antes de materializar no Project vinculado ao repositorio.
+- Antes de codificar uma issue, consultar o Project vinculado, milestone, épica, bloqueios, status e repositório. Registrar trabalho novo no Project adequado, sem presumir um único owner para todos os projetos.
+- Usar MCP ou GitHub CLI para Issues/PRs e operações de Project efetivamente suportadas; `gh api graphql` para operações sem cobertura. Consultar IDs/opções por Project; nunca reutilizar IDs de outra org. Git/SSH transporta commits, não metadados.
+- Distinguir Issue Fields (organização) de Project V2 Fields (itens do Project). Preencher `type`, labels, assignee e milestone na issue e, separadamente, Status, Estimate, Size, Priority, Effort e datas **se existirem** no Project.
 
-## 0.1 Orquestracao de ferramentas - MCP vs GraphQL vs SSH (regra de ouro)
+## Milestone, épica e sub-issues
 
-Dividir responsabilidades para ser assertivo. O agente NUNCA tenta popular Project V2 Custom Fields via MCP REST.
+- Para uma release, criar/verificar milestone `v<MAJOR>.<MINOR>.<PATCH>` e uma épica de mesmo nome. Épica agrega entregas, não código: type `Release`, label `release`, milestone, `Estimate: 10`, `Size: XL`, `Effort: Team` e datas, onde suportados; Issue Field `MAJOR` somente se existir e corresponder ao caso.
+- A sprint é a milestone; sub-issues têm a mesma milestone, título orientado pelo tipo, contexto de entrega, type, labels, assignee e bloqueios `blocked-by`/`blocking` quando aplicáveis. Release não épica não herda automaticamente Estimate 10.
+- Descobrir os campos e tipos disponíveis na organização antes de preenchê-los; formulário de issue não atribui automaticamente parent, milestone, Issue Fields ou Project Fields.
 
-| Recurso | Quando usar | Exemplos |
-| --- | --- | --- |
-| **GitHub MCP** | Acoes de alto nivel, leitura de contexto, operacoes nativas da Issue/PR | `issues_create`, `issues_add_comment`, `pull_request_create`, `repository_get_file_content`, `git_status`, `git_log` |
-| **GraphQL API via `gh api graphql`** | Popular/atualizar **exclusivamente** metadados de Project V2 (`Status`, `Estimate`, `Size`, `Priority`, `Effort`, `Hotfix`, `Start/Target date`) | `updateProjectV2ItemFieldValue`, `addProjectV2ItemById`, `createProjectV2Field` |
-| **SSH (`git@github-*.com:`)** | Operacoes de filesystem/git puro | `git clone`, `git push`, `git pull`, `git fetch` |
+### Estimate mede valor agregado, não esforço
 
-**Fluxo do agente para metadados:**
-1. MCP cria a Issue/PR inicial e define `labels`, `assignees`, `milestone` (metadados nativos).
-2. GraphQL localiza `projectId` + `fieldId` + `itemId` e injeta `fieldValue` via mutation. MCP nao tem cobertura total para `ProjectV2Field` - nao insistir.
-3. SSH apenas transporta commits. Nunca usar SSH para metadados.
-
-> Se o agente receber `field not found` ou `ProjectV2 not supported` no MCP, migrar imediatamente para `gh api graphql` com PAT do agente.
-
-## 1. Triagem e tipagem da issue
-
-- **bug / fix / hotfix** quando for defeito ou correcao. Usar type `Bug` para defeito em `develop`/`release`, `Hotfix` exclusivamente para correcao emergencial em `master`/`release` ja publicada. `fix` sem melhor enquadramento usa `Task` mas preferir `Bug`.
-- **feature** quando for dependencia tecnica ou nova implementacao necessaria para entregar um recurso. Usar type `Feature`.
-- Toda issue, inclusive `Hotfix`, deve estar vinculada a uma **Milestone**. Milestones andam juntas com tags de releases e alimentam o `changelog`. Sem milestone, sem issue.
-
-## 2. Milestone + Issue epica de Release (obrigatorio)
-
-Para cada release (ex: `v0.0.1` - nao usar sufixo `beta` no nome da release/milestone):
-
-1. Criar/atualizar a **Milestone** com o mesmo nome da tag (`v0.0.1`, `v0.0.2`...).
-2. Criar a **issue epica de release** com o **mesmo nome da Milestone** (`v0.0.1`). Essa issue e a unica com:
-   - `type: Release` com field `MAJOR` (issue Fields)
-   - `label: release`
-   - `estimate: 10` e `size: XL` (agregacao de valor maxima - escala 1~10)
-   - Milestone vinculada
-   - Popular **obrigatoriamente via GraphQL** os fields do Project (`Status`, `Estimate`, `Size`, `Priority`, `Effort`) apos adicionar a issue ao Project com `addProjectV2ItemById` + `updateProjectV2ItemFieldValue`. Fallback para issue Fields apenas se Project nao existir.
-3. A issue epica nunca recebe codigo. Ela agrega.
-
-## 3. Sub-issues = Sprint da Milestone
-
-A Milestone e a sprint. As sub-issues da epica sao as entregas reais daquela release:
-
-- Criar cada sub-issue com `parent: <epica v0.0.1>` via `gh issue create --parent` ou `addSubIssue`.
-- Herdar a mesma Milestone da epica.
-- Preencher `type`, `labels`, `fields` (`Estimate` 1~9 conforme tabela, `Size` XS~XL), `assignee` (conta autenticada pelo PAT) e descricao enriquecida.
-- Relacionar bloqueios: `blocked-by` / `blocking` quando houver dependencia. Isso sustenta PRs enfileirados.
-
-### Tabela Estimate/Size (1~10)
-
-| Estimate | Size | Uso |
+| Estimate | Size | Critério |
 | ---: | --- | --- |
-| 1 | XS | trivial |
-| 2 | S | pequeno |
-| 3 | M | medio |
-| 4 | L | grande |
-| 5 | XL | muito grande (limite para delivery isolada) |
-| 6 | XL | Hotfix exclusivo |
-| 7 | XL | Feature de PATCH |
-| 8 | XL | Feature de MINOR |
-| 9 | XL | Feature de MAJOR |
-| 10 | XL | apenas epica de Release MAJOR |
+| 0 | conforme item | homologação |
+| 1–5 | XS, S, M, L, XL respectivamente | features por valor agregado |
+| 6 | variável | hotfix |
+| 7 | conforme escopo | PATCH |
+| 8 | conforme escopo | MINOR |
+| 9 | conforme escopo | MAJOR |
+| 10 | XL | somente épica de Release |
 
-## 4. Branch + Worktree (obrigatorio)
+`Effort` é outro campo: não inferir esforço a partir do Estimate; descobrir opções reais de Priority e Effort no Project.
 
-- Toda entrega tem **branch propria** a partir da **branch de release** (`release/v0.0.1`). Se a release ainda nao tem branch `release/v0.0.1`, cria-la a partir de `develop` primeiro.
-- Nunca partir de `master` para issue de feature/bug/task. `hotfix/` parte de `master` ou `release/*` publicada.
-- Criar **novo worktree** para isolar a implementacao: `git worktree add -b <tipo>/<slug> <caminho> <origem>` (ver `git-worktree` skill). Um worktree por issue.
-- Publicar a branch no remoto (`origin` deve ser o repositorio organizacional `aplicacoesBoilerplate/<repo>`) antes do PR.
+## Branch, worktree e PR
 
-## 5. Pull Request
+- Criar `release/<milestone>` a partir de `develop` quando necessário. Sub-issue da sprint parte da branch da release em worktree separado; `hotfix/` parte de destino publicado conforme o caso. Confirmar remoto e branch da issue antes do push.
+- Uma branch/PR de sub-issue entrega uma issue. PRs de integração `release → develop` e `develop → master` agregam a sprint e não são confundidos com PRs de sub-issue; homologar antes de cada integração.
+- PR de sub-issue leva metadados equivalentes aos da issue quando suportados e vínculo em `Development`. Usar palavra-chave de fechamento somente quando o merge na branch padrão de fato deve fechar a issue; senão vincular sem fechá-la prematuramente. Solicitar review do responsável do repositório e seguir branch protection, sem autoaprovação.
+- PRs empilhados são permitidos quando há dependência explícita e bases encadeadas; registrar os bloqueios. Sem alteração versionável, não abrir PR artificial; explicar na issue antes de encerrar, quando autorizado.
 
-- Uma branch resolve **uma unica issue**, um PR entrega **uma unica issue**.
-- Titulo humano sem prefixo `feat:`; descricao e o relatorio `generate-report` em Markdown.
-- Preencher no PR os **mesmos metadados da issue**: `assignee` (conta autenticada), `labels`, `milestone`, `Project`, `type` quando o Project suportar. Confirmar via REST depois da criacao.
-- Em PR para `master` usar `Closed #N`/`Fixed #N` para fechar automaticamente. Em PR para `release/*` ou `develop` nao usar palavra-chave de fechamento; vincular manualmente em `Development > Link issue` (ou `addLinkedPullRequestToIssue` via GraphQL) e fechar a issue manualmente apos merge.
-- **Solicitar review do owner do repositorio** (`gersonfribeiro`) obrigatoriamente. Merge so com `APPROVED` explicito do owner. Nunca autoaprovar.
-- PRs enfileirados: quando issue A e bloqueada por issue B, abrir 2+ PRs com base encadeada (`feature/A` -> `feature/B` -> `release/v0.0.1`) e declarar `blocked-by`.
+## Status oficial do Project
 
-## 6. Status no Project (workflows)
+Tomar como referência o [Project Template](https://github.com/orgs/aplicacoesBoilerplate/projects/11); confirmar opções e workflows do Project concreto. Ordem: `Backlog`, `Prevented`, `On hold`, `In progress`, `In review`, `Request changes`, `Reopened`, `Ready`, `Done`, `Cancelled`. Não exigir que toda issue passe por todos os estados.
 
-Nunca mudar `Status` manualmente se o workflow do Project cobrir:
+- `Prevented`: item necessário agora, porém bloqueado para começar. Documentar impedimento e a issue bloqueante quando houver.
+- `On hold`: fila das próximas iterações, geralmente item prioritário ou que desbloqueia um `Prevented`; não significa bloqueio próprio.
+- `In progress`: implementação iniciada; `In review`: PR aguardando análise; `Request changes`: correções solicitadas, sem substituir a review formal.
+- `Ready`: PR **aceito/aprovado**, reservado para ser coletado na entrega da release, **antes do merge efetivo**. Não significa pronto para começar.
+- `Done`: merge/fechamento concluído de acordo com o fluxo; `Cancelled`: cancelamento/PR encerrado sem merge.
 
-- Ao **criar a branch** e adicionar a issue ao Project -> `In Progress`.
-- Ao **abrir o PR** vinculado -> `In Review`.
-- Ao **receber `APPROVED`** do owner -> `Ready`.
-- Apos **merge/close** -> `Done` (workflow move e encerra a issue).
+Branch criada, PR aberto, aprovação e merge **podem** acionar workflows de transição; consultar automações reais antes de tratá-las como garantia. Se não ocorrerem, conferir presença no Project e vínculo issue/PR; corrigir após diagnosticar. Evitar alteração manual quando já houver workflow confiável.
 
-Validar os 3 gatilhos antes de iniciar outra issue. Se workflow nao disparar, diagnosticar: item fora do Project, vinculo `Refs` em vez de `Development`, workflow desabilitado. So entao registrar em comentario e corrigir.
+## Views e replicação
 
-## 7. Entregas sem alteracao versionavel
+- Consultar campos e views antes de criar Board, Table ou Roadmap; datas de roadmap dependem de campos presentes. Evitar copiar view ou automação entre Projects sem confirmar suporte da API.
+- Para alinhar Projects a um template, comparar campos, opções, ordem, descrições e cores por nome/tipo; preservar IDs de opções existentes e valores dos itens (especialmente ao renomear). Acrescentar o que falta e verificar novamente. Não excluir campos específicos do consumidor sem instrução explícita.
+- Metadados do backlog/sprint vivem no GitHub; planejamento técnico local pode morar em `docs/planejamentos-local/`, sem duplicar status e estimativas.
 
-Se nao houver diff commitavel, nao abrir PR artificial. Justificar em comentario na issue e encerrar manualmente quando o usuario autorizar.
-
-## 8. Planejamento obrigatorio antes de codar
-
-Consultar via MCP/GitHub CLI: `Project` (Status, Estimate, Size, fields), Milestones abertas, epica da release e arvore de sub-issues, Types/labels/fields, arvore Git e tags. Se nao houver milestone/epica compativel, criar primeiro conforme secao 2. Para fields do Project, consultar via GraphQL: `gh api graphql -f query='{node(id:"<projectId>"){...on ProjectV2{fields(first:20){nodes{...on ProjectV2SingleSelectField{id name options{name}}}}}}}'`
-
-## 9. Views do Project V2 - como usar (baseado em image_886b91.png)
-
-Nunca tentar colocar tudo em uma view. Criar abas e congelar com **Save view**:
-
-| View | Layout | Configuracao | Quando usar |
-| --- | --- | --- | --- |
-| **Engenharia (Board)** | Board | `Column by: Status` (Backlog/In Progress/Done) + `Swimlanes: Milestone` ou `Swimlanes: Hotfix` | Dia-a-dia do time. Hotfix vira raia expressa no topo |
-| **Triage/Agente (Table)** | Table | `Group by: Status` + `Field sum: Estimate/Size` + filtros `No Status` | Auditoria do agente via API, garantir que todos `Estimate` foram preenchidos |
-| **Executiva (Roadmap)** | Roadmap | Requer `Start date` + `Target date` preenchidos via GraphQL | Apenas epicas/parent issues, visao de timeline |
-
-Comando para popular datas via GraphQL: `updateProjectV2ItemFieldValue` com `fieldId` do `Date` field e `value: {date: "2026-09-01"}`.
-
-## 10. Replicacao entre organizacoes (Infra como Codigo)
-
-GitHub nao tem "Template Global" para Projects/Fields. O agente e a ferramenta de replicacao:
-
-1. Criar o Project ideal na org source-of-truth (`aplicacoesBoilerplate`) com todas views e fields.
-2. Agente le a estrutura via GraphQL, consultando apenas os tipos/mutations que o schema atual expuser (`fields`, `views`, `workflows`).
-3. Loop nas orgs de destino com PAT multi-org executando as mutations suportadas (`createProjectV2`, `createProjectV2Field` e configuracao de views/workflows quando disponivel). Nao assumir que IDs de fields, options, views ou workflows sao reutilizaveis entre orgs: mapear por nome/layout e guardar os novos IDs.
-4. Commitar o script de replicacao (Go/Python/`gh api graphql`) no repo `infra` para reuso. Tornar a operacao idempotente por `org + project title` e registrar um relatorio dos IDs criados/atualizados.
-
-## 11. Populacao fina de Fields - template GraphQL obrigatorio
-
-```bash
-# 1. Resolver IDs
-gh api graphql -f query='query{organization(login:"aplicacoesBoilerplate"){projectV2(number: 1){id fields(first:20){nodes{...on ProjectV2SingleSelectField{id name}}}}}}'
-gh api graphql -f query='query{node(id:"<issueNodeId>"){...on Issue{id}}}'
-
-# 2. Adicionar issue ao Project e pegar itemId
-gh api graphql -f query='mutation{addProjectV2ItemById(input:{projectId:"<projectId>" contentId:"<issueNodeId>"}){item{id}}}'
-
-# 3. Popular field (ex: Estimate=3, Priority=High)
-gh api graphql -f query='mutation{updateProjectV2ItemFieldValue(input:{projectId:"<projectId>" itemId:"<itemId>" fieldId:"<fieldId>" value:{singleSelectOptionId:"<optionId>"}}){projectV2Item{id}}}'
-# Para Number/Text/Date: value:{number:3} | value:{text:"x"} | value:{date:"2026-09-01"}
-```
-
-## 12. Permissoes do PAT
-
-Ver skill `github-permissions` para matriz completa de `Organization permissions > Projects` e `Repository permissions > Issues/Pull requests` e comandos que exigem `gh auth refresh` pelo usuario real.
+Permissões e exemplos GraphQL: ver `github-permissions` e `github-cli-graphql`.

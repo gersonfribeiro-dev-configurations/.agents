@@ -9,12 +9,12 @@ Use worktree SEMPRE que for entregar uma issue vinculada a uma Milestone/Release
 
 ## Limite de responsabilidade
 
-Worktree isola apenas o codigo e o historico Git. A issue, o PR e os metadados do Project continuam sendo recursos remotos: use MCP para operacoes de alto nivel e `gh api graphql` para fields/views do Project V2. Use SSH somente no remote Git para `fetch`, `pull` e `push`.
+Worktree isola apenas o código e o histórico Git. Issue, PR e metadados do Project continuam remotos: use MCP/GitHub CLI nas operações suportadas e GraphQL quando necessário; SSH somente para transporte Git.
 
 ## Principios
 
-- Um worktree = uma delivery = uma issue/sub-issue da epica `v0.0.1`.
-- A branch da issue parte obrigatoriamente da **branch de release** (`release/v0.0.1`). Se a release nao existe, cria-la a partir de `develop` primeiro: `git checkout -b release/v0.0.1 develop && git push -u origin release/v0.0.1`.
+- Um worktree = uma entrega = uma issue/sub-issue da épica da milestone efetiva.
+- A branch da sub-issue parte de `release/<milestone>`; se não existe, criá-la a partir de `develop` depois de conferir o nome da milestone e o remoto. Não usar versão fixa nos comandos.
 - Nunca partir de `master` para `feature/bug/task`. `hotfix/` parte de `master` ou `release/*` publicada.
 - Uma branch so pode estar ativa em um worktree por vez. Navegue ate o worktree em vez de `git checkout` em outro diretorio.
 - Nunca apague a pasta manualmente. Use `git worktree remove`.
@@ -22,26 +22,26 @@ Worktree isola apenas o codigo e o historico Git. A issue, o PR e os metadados d
 ## Fluxo padrao para uma sub-issue
 
 ```bash
-# 1. Garantir que a release branch existe e esta atualizada
+# 1. Substituir os valores abaixo pelos nomes reais da milestone, issue e repositório
+MILESTONE=v1.0.0
+SLUG=nome-da-issue
+REPO=nome-do-repositorio
+# Garantir que a release branch já existe no remoto (se não existir, criá-la de develop)
 git fetch origin
-git checkout release/v0.0.1
-git pull --ff-only
 
 # 2. Criar worktree + branch da issue a partir da release
-# <caminho-do-worktree> deve ser relativo ao repo ou usar variavel de ambiente, nunca caminho absoluto com usuario fixo
-# Exemplo relativo (recomendado, funciona em qualquer maquina): ../<repo>-<slug>
-# Ou com base configuravel: $WORKSPACE/<repo>-<slug>
-git worktree add -b feature/<slug-da-issue> ../<repo>-<slug> release/v0.0.1
+# Usar caminho relativo ou base configurável, nunca usuário absoluto fixo
+git worktree add -b "feature/${SLUG}" "../${REPO}-${SLUG}" "origin/release/${MILESTONE}"
 
 # 3. Trabalhar dentro do worktree
-cd ../<repo>-<slug>
+cd "../${REPO}-${SLUG}"
 git status
 
 # 4. Publicar branch para PR voltar para release
-git push -u origin feature/<slug-da-issue>
+git push -u origin "feature/${SLUG}"
 ```
 
-Ao criar a branch, adicionar a issue ao Project e mover `Status` para `In Progress` (workflow ou manual se permissao faltar e registrado em comentario). Adicionar item e atualizar fields devem ser feitos via GraphQL quando o MCP nao expuser a operacao.
+Ao criar a branch, verificar se a issue está no Project e se o workflow moveu `Status` para `In progress` (grafia oficial). Se não, diagnosticar vínculo e automação antes de atualizar manualmente. MCP, CLI e GraphQL podem operar fields conforme cobertura real.
 
 ## Consultar worktrees
 

@@ -115,7 +115,7 @@ Não coloque regra de negócio em controllers, lógica HTTP em services, consult
 - Use `!` em uma mudança incompatível, por exemplo `feat(api)!: remover endpoint legado`.
 - Quando existirem `.githooks/`, execute o script de bootstrap do projeto ou configure `git config core.hooksPath .githooks` antes de depender dos hooks.
 - Hooks são feedback local, não substituem a CI. Não use `--no-verify` para contornar falhas sem uma justificativa explícita.
-- Quando o projeto adotar Release Please, a PR de release deve ser revisada antes do merge: ela atualiza a versão Maven, o changelog, a tag e a GitHub Release a partir dos Conventional Commits.
+- Release Please é **uma opção** quando adotada pelo consumidor: conferir suas configurações e aprovação antes do merge. Em fluxo de release por sprint com Maven/jgitver ou outra ferramenta já configurada, seguir o contrato do consumidor e não introduzir uma segunda automação de versão/tag concorrente.
 - Não misture commits de formatação em massa com mudanças funcionais.
 
 ## CI/CD e entrega

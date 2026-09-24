@@ -9,16 +9,14 @@ Aqui, o objetivo é criar uma biblioteca (por exemplo, contendo wrappers do Vuet
 
 ## Credenciais
 
-Como nosso repositório de pacotes é sempre privado para restringir o seu uso apenas a nossa organização, temos que configurar um Personal Access Token no Github e adicionar no .npmrc. O PAT utilizado deve conter os escopos de write:packages e read:packages
+Para GitHub Packages privado, usar a credencial autorizada pelo ambiente: `GITHUB_TOKEN` na CI quando o pacote estiver acessível, ou PAT com `read:packages`/`write:packages` conforme operação. Nunca commitar ou imprimir um PAT.
 
 ### .npmrc
 
-Na raiz do projeto da biblioteca, criar um arquivo chamado .npmrc.
-Ele instrui o NPM a direcionar o download e o upload de pacotes com o escopo (meu nome de usuário) para o GitHub, usando o token PAT.
+No projeto, versionar apenas o registry do escopo. A autenticação deve ser fornecida por configuração do usuário/CI protegida, não por token literal no `.npmrc` versionado.
 
 ```txt
 @meu_usuario:registry=https://npm.pkg.github.com
-//npm.pkg.github.com/:_authToken=MEU_PERSONAL_ACCESS_TOKEN
 ```
 
 ### Preparando o package.json
@@ -35,8 +33,7 @@ O GitHub exige que o nome do pacote contenha o escopo de usuário. O arquivo pre
     "registry": "https://npm.pkg.github.com"
   },
   "scripts": {
-    "build": "vite build",
-    "release": "standard-version"
+    "build": "vite build"
   }
 }
 ```
@@ -72,20 +69,20 @@ export default defineConfig({
 
 ## Versionamento Limpo
 
-Técnicas como o uso correto do standard-version e commitlint precisam estar no repositório para garantir que as alterações em pacotes vão ser feitas corretamente, como manter v.1.0.0 -> v.1.0.1 e a versão com marcação latest.
+Escolher a ferramenta de versionamento que o consumidor realmente utiliza: `standard-version` em um pacote Node, Changesets em workspace/monorepo, ou outra estratégia existente. Conventional Commits/commitlint são aplicáveis quando fazem parte do contrato escolhido.
 
 ### A Versão
 
-Ao rodar o standard-version (npm run release), a ferramenta gera o CHANGELOG.md, cria a tag no Git e atualiza o package.json. Um detalhe comportamental importante a ter em mente sobre o standard-version na configuração é que ele irá incrementar sempre a versão MINOR, independentemente de realizar um commit de fix ou feat, e ele avalia apenas o último commit. Isso significa que a esteira de publicação dará saltos de MINOR a cada nova release (ex: 1.0.0 para 1.1.0, depois 1.2.0), não gerando versões de patch. Para um ecossistema interno de componentes, esse avanço acelerado de MINOR é perfeitamente funcional.
+`standard-version`, quando configurado, calcula bump com base no histórico relevante de Conventional Commits e nas regras da ferramenta (incluindo configuração do projeto); **não** assume sempre MINOR nem apenas o último commit. Ele pode atualizar versão/changelog e criar tag; executar apenas na etapa autorizada do fluxo do consumidor, sem gerar tag no PR de prévia. Changesets/Turbo possuem preparação de mudanças por pacote e publicação própria; consultar o perfil real antes de automatizar.
 
 ### Publicação
 
-Após rodar o build do Vue/TypeScript, executar *npm publish*. O NPM lê o *.npmrc*, autentica no GitHub e envia os artefatos da pasta *dist/*.
+Após validar a build, publicar somente no fluxo pós-merge aprovado/homologado e com credencial adequada. Conferir versão/tag imutáveis e artefatos que serão enviados antes de executar `npm publish`.
 
 
 ## Consumindo o pacote em outro PWA/Aplicação
 
-Basta garantir que no novo projeto, o .npmrc com a autenticação exista na raiz, e rodar:
+Basta configurar o registry de escopo e a autenticação segura no consumidor, e rodar:
 
 ```bash
 npm install @meu_usuario/ui-components
@@ -105,7 +102,7 @@ O objetivo aqui é criar um .jar com classes utilitárias, filtros, DTOs e anota
 
 ## Credenciais
 
-Como nosso repositório de pacotes é sempre privado para restringir o seu uso apenas a nossa organização, temos que configurar um Personal Access Token no Github e adicionar no settings.xml. O PAT utilizado deve conter os escopos de write:packages e read:packages
+Para GitHub Packages Maven privado, fornecer credenciais com permissões necessárias no `settings.xml` **fora do repositório** ou via segredo da CI; `GITHUB_TOKEN` pode ser usado quando houver autorização. Não armazenar token literal em exemplos versionados.
 
 ### settings.xml
 
@@ -117,7 +114,7 @@ O Maven precisa saber quem eu sou... Devo Editar ou criar o arquivo ~/.m2/settin
     <server>
       <id>github</id>
       <username>MEU_USUARIO_DO_GITHUB</username>
-      <password>MEU_PERSONAL_ACCESS_TOKEN</password>
+      <password>${env.GITHUB_PACKAGES_TOKEN}</password>
     </server>
   </servers>
 </settings>
@@ -150,7 +147,7 @@ Técnicas como o uso correto do jgitver e commitlint (.git/hooks para substituir
 
 ### A Versão
 
-O jgitver entra em ação e calcula a próxima versão com base nas tags e branchs do Git, injetando isso dinamicamente no Maven (não precisa editar a tag <version> no pom.xml manualmente).
+Quando adotado, o jgitver calcula versões Maven a partir da configuração e das referências Git, sem exigir edição manual de `<version>` no `pom.xml`. A versão da milestone não substitui automaticamente a do artefato; alinhar tag, build e GitHub Release ao commit integrado.
 O maven-antrun-plugin pode ser usado nesse momento para gerar arquivos de properties ou documentação com a versão recém-calculada.
 
 ## A Publicação
@@ -161,7 +158,7 @@ No terminal
 mvn deploy
 ```
 
-O Maven compila o código, empacota em um .jar, lê as credenciais do settings.xml e envia o pacote para o GitHub.
+O Maven compila e publica com as credenciais do `settings.xml` seguro. Executar deploy somente após gates da release; para projetos Go, usar o adaptador Go configurado pelo consumidor e publicar tags somente no fluxo pós-merge.
 
 ## Consumindo o pacote em outra API
 

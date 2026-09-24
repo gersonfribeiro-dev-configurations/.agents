@@ -17,6 +17,11 @@ Seu objetivo é garantir que o código seja limpo, seguro e testável, atuando c
 - Previna injeções (SQL, XSS, etc) sanitizando entradas e utilizando ORMs ou Prepared Statements nas camadas de dados.
 
 ## 3. Cobertura de Testes (Quality Gates)
-- O código deve manter ou aumentar a cobertura de testes atual.
-- Ao adicionar novas regras de negócio, crie testes unitários correspondentes imediatamente.
-- Se o SonarQube apontar falta de cobertura em ramificações condicionais, escreva casos de teste específicos para atingir essas condições lógicas.
+- Usar as condições efetivamente configuradas para **código novo** (cobertura, bugs, vulnerabilidades, duplicação) e os testes pertinentes à alteração; não declarar aprovado só porque a análise começou.
+- Ao adicionar regras de negócio, cobrir comportamentos e caminhos de erro com testes úteis. Se houver falha de cobertura, verificar quais caminhos realmente faltam.
+
+## 4. PR, check obrigatório e revisão
+
+- Quando integrado ao repositório, disparar scanner em cada PR relevante e publicar o resultado do quality gate como check. Resultado reprovado ou inconclusivo não passa; configurar o check como obrigatório no ruleset/branch protection quando exigido pela entrega.
+- Scanner efêmero em CI não implica servidor SonarQube efêmero: confirmar URL, credenciais e retenção do servidor persistente antes de configurar o workflow. Nunca executar análise de código de fork com segredo acessível a scripts não confiáveis.
+- Se o gate falhar, registrar evidências no PR e corrigir findings de código novo; mover a issue para `Request changes` apenas se houver vínculo e permissão e isso corresponder à automação do Project. Esse Status não equivale a uma review `REQUEST_CHANGES` nem bloqueia merge sem check obrigatório.

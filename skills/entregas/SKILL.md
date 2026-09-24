@@ -3,69 +3,23 @@ name: entregas
 description: Use when running delivery tasks such as running tests, linting, type-check, build, or setting up ESLint, Prettier, commitlint, Husky, and validating code quality.
 ---
 
-# Skill: Entregas - Fluxo Sprint/Milestone
+# Entregas por stack e release
 
-## 1 Testes automatizados
+## Verificações pertinentes
 
-- **Backend:** Kafka para testes.
-- **Frontend:** Playwright.
-- Novos recursos, refatorações ou integrações exigem testes.
+- Identificar a stack e os comandos configurados antes de executar lint/formatação, testes, análise estática, type-check e build. Rodar os checks necessários para a mudança, sem exigir build em entrega documental nem Kafka/Playwright em projeto que não os usa.
+- Backend: testar regras, integração e migração quando alteradas; Kafka somente para fluxos de mensagens. Frontend: testes de componentes e Playwright quando houver comportamento E2E/UI pertinente. Workflows/templates: validar YAML, contratos e cenários em repositório de ensaio.
+- Quando SonarQube estiver configurado, disparar análise por PR e verificar quality gate de código novo. Gate reprovado ou inconclusivo não equivale a aprovado; exigir check no ruleset/branch protection quando aplicável. `Request changes` no Project é sinalização visual, não substitui review nem protege merge por si só.
+- Informar verificações realmente executadas e bloqueios reais; não afirmar que todos os projetos têm a mesma infraestrutura.
 
-## 2 Validacao de código
+## Git, release e PR
 
-- SonarQube MCP, ESLint frontend.
+- Para sub-issue de milestone, partir de `release/<milestone>` derivada de `develop`, usar branch e worktree isolados; hotfix segue o destino publicado. Confirmar remoto real, sem owner fixo. Uma branch/PR de sub-issue entrega uma issue; PR de integração `release → develop` e `develop → master` agrega a sprint, com homologação antes de cada merge.
+- Vincular PR à issue e preencher metadados equivalentes quando suportados; pedir review ao responsável configurado. Não autoaprovar. Documentar realização, fontes, teste e novidade com `generate-report`.
+- Conferir os Status existentes e workflows do Project: `In progress` após início, `In review` durante review, `Ready` após aceitação do PR **e antes do merge** (aguarda coleta na release), `Done` somente após integração/fechamento. `Prevented` é trabalho necessário impedido de começar; `On hold` é fila de próximas iterações, inclusive desbloqueantes/prioritários. Não forçar transição manual se a automação real já cobre o evento.
+- Sem diff versionável, não abrir PR artificial. Comentar o motivo e encerrar issue quando autorizado.
 
-## 3 Validacoes finais
+## Ferramentas locais
 
-- Type-check, docker-compose, consoles sem erros, testes no compose.
-
-## 4 Build
-
-Toda entrega com build (frontend e/ou backend).
-
-## 5 Git Flow e Pull Requests - Regras imutáveis
-
-- Uma branch resolve **uma única issue**, um PR entrega **uma única issue**.
-- Árvore permitida: `master`, `develop`, `feature/<nome>`, `hotfix/<nome>`, `release/<versao>`. Nunca `fix/`.
-- `feature/` para `Feature/Bug/Task`; `hotfix/` exclusivo para `Hotfix`; `release/` para versão.
-- Branch da issue parte de `release/v0.0.1` quando a issue pertence a essa Milestone. Fora de release, parte de `develop`. Nunca de `master`.
-- Isolar em **worktree** (ver `git-worktree`). Publicar branch no remoto organizacional antes do PR.
-- `git remote -v` deve apontar para `aplicacoesBoilerplate/<repo>`.
-- Abrir PR para a branch de origem (`feature/*` -> `release/v0.0.1`, `release/*` -> `develop`, `develop` -> `master`).
-- Relatorio `generate-report` e descricao do PR em Markdown. Titulo humano sem `feat:`.
-- Preencher no PR: `assignee`, `labels`, `milestone`, `Project`, `type` (quando suportado), `Estimate/Size` se o Project aceitar para PRs. Confirmar via REST.
-- `Development`: em PR para `master` usar `Closed #N`; em PR para `release/*`/`develop` vincular manualmente (`Development > Link issue` ou `addLinkedPullRequestToIssue`).
-- Em PRs para `develop`/`release/*` fechar a issue manualmente apos merge.
-- Status via workflows do Project: `In Progress` (branch), `In Review` (PR), `Ready` (APPROVED owner), `Done` (merge). Nao substituir por mudanca manual exceto sem permissao e com registro.
-- Em repo com unico contribuidor, nao autoaprovar. Registrar evidencia, manter `In Review` ate aprovacao do owner.
-- PRs enfileirados quando `blocked-by`: abrir 2+ PRs encadeados e declarar dependencia.
-- Sem diff versionavel, nao abrir PR. Justificar em comentario e encerrar issue manualmente se autorizado.
-
-## 6 Garantias
-
-100% implementado e funcional antes de abrir PR, com testes/build passando.
-
----
-
-# Setup de Ferramentas
-
-## ESLint + Prettier
-
-```bash
-npm install -D eslint eslint-plugin-vue prettier eslint-config-prettier \
-  eslint-plugin-prettier @eslint/js globals typescript typescript-eslint
-```
-
-Scripts `package.json`: `lint`, `lint:fix`, `format`.
-
-## Commitlint + Husky
-
-```bash
-npm install -D @commitlint/cli @commitlint/config-conventional husky
-npx husky init
-echo "npx --no -- commitlint --edit \$1" > .husky/commit-msg
-```
-
-## Arquivos de configuracao
-
-https://github.com/gersonfribeiro/dev-configurations/tree/main/settings
+- ESLint/Prettier, commitlint e Husky só devem ser configurados quando aplicáveis à stack e compatíveis com o repositório; revisar versões e docs oficiais antes de instalar. Hooks não substituem checks obrigatórios na CI.
+- Para CI/CD e GitHub Projects, consultar também `cicd`, `github-planning` e `github-permissions`.
